@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, Snap!</string>
+    <string name="app_name">Snap</string>
+<string name="emailPref">emailPref</string>
+<string name="passwordPref">passwordPref</string>
+<string name="app_prefs">Snap Preferences</string>
+<string name="recipientPref">recipientPref</string>
+<string name="subjectPref">subjectPref</string>
+</resources>
