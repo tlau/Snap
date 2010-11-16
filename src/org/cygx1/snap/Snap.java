@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.cygx1.snap.SnapPreferences;
 import org.cygx1.snap.R;
 
 import android.app.Activity;
@@ -30,11 +31,19 @@ import android.widget.Toast;
  * 
  * @author tlau
  * 
- *         Camera bugs:
- *         http://stackoverflow.com/questions/1910608/android-action
- *         -image-capture-intent
+ * Camera bugs:
+ * - http://stackoverflow.com/questions/1910608/android-action-image-capture-intent
+ * - http://code.google.com/p/android/issues/detail?id=1480
  * 
- *         http://code.google.com/p/android/issues/detail?id=1480
+ * Sending email without user interaction using JavaMail:
+ * - http://nilvec.com/sending-email-without-user-interaction-in-android/
+ * 
+ * TODO:
+ * send mail from a separate thread so it doesn't block the UI
+ * detect camera orientation and tag the JPEG with the right orientation
+ * make sure camera preview works on all devices
+ * prompt for preferences on startup if they're not set
+ * delete the image after sending
  */
 
 public class Snap extends Activity {
@@ -48,6 +57,14 @@ public class Snap extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// If we haven't set our preferences yet, start with that view
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String email = prefs.getString(getString(R.string.emailPref), null);
+        if (email == null) {
+        	startActivity(new Intent(this, SnapPreferences.class));
+        	return;
+        }
 
 		// TL: the code below tries to invoke the built-in camera app
 		// It doesn't exactly work
@@ -75,8 +92,9 @@ public class Snap extends Activity {
 		}
 
 		// TL: the code below uses our own Camera Activity, which probably works
-		// better on more devices,
-		// but doesn't have as many amenities as the built-in Camera app
+		// better on more devices, but doesn't have as many amenities as the
+		// built-in Camera app
+		
 		// Declare the layout to be fullscreen with no title bar
 		getWindow().setFormat(PixelFormat.TRANSLUCENT);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -98,19 +116,23 @@ public class Snap extends Activity {
 
 	}
 
+	// Callback when the camera activity finishes
+	// Currently not used; this goes with the code above to launch the built-in camera activity
 	protected void onActivityResult(int requestCode, int resultCode,
 			Intent intent) {
-		Log.d(TAG, "Activity result, sending file!");
-		sendIt(outputFile);
-		Log.d(TAG, "Finished sending!");
-		this.finish();
-		/*
-		 * switch (requestCode) { case mRequestCode: Uri u; u =
-		 * intent.getData(); }
-		 */
+		if (requestCode == mRequestCode) {
+			Log.d(TAG, "Activity result, sending file!");
+			// Retrieve the image from the static filename we defined earlier ... there
+			// should be a better way to pass this information
+			sendIt(outputFile);
+			Log.d(TAG, "Finished sending!");
+			this.finish();
+		}
 	}
 
-	/** Handles data for jpeg picture */
+	/**
+	 * Callback with jpeg data taken from camera
+	 */
 	PictureCallback jpegCallback = new PictureCallback() {
 		public void onPictureTaken(byte[] data, Camera camera) {
 			try {
@@ -143,7 +165,10 @@ public class Snap extends Activity {
 		}
 	};
 
-	// Send a file attachment via email
+	/**
+	 *  Send a file attachment via email
+	 * @param outputFile - the File containing the attachment to send
+	 */
 	public void sendIt(File outputFile) {
 		// Now send it via email
 		
