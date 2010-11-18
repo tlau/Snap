@@ -141,7 +141,7 @@ public class Snap extends Activity {
 				// have the object build the directory structure, if needed.
 				snapDirectory.mkdirs();
 				// create a File object for the output file
-				File outputFile = new File(snapDirectory, String.format(
+				final File outputFile = new File(snapDirectory, String.format(
 						"p%d.jpg", System.currentTimeMillis()));
 				// now attach the OutputStream to the file object, instead of a
 				// String representation
@@ -152,7 +152,13 @@ public class Snap extends Activity {
 				Toast.makeText(getApplicationContext(), "Snapshot saved",
 						Toast.LENGTH_SHORT).show();
 
-				sendIt(outputFile);
+				//	Send the picture - asynchronously
+				new Thread() {
+					public void run() {
+						sendIt(outputFile);
+					}
+				}.start();
+
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
