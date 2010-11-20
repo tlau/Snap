@@ -5,9 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.cygx1.snap.SnapPreferences;
-import org.cygx1.snap.R;
-
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -15,6 +12,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
@@ -36,7 +34,9 @@ import android.widget.Toast;
  * 
  * @author tlau
  * 
- * Camera bugs:
+ * How to program the camera:
+ * - http://developer.android.com/reference/android/hardware/Camera.html
+ * - http://www.brighthub.com/mobile/google-android/articles/43414.aspx?p=2
  * - http://stackoverflow.com/questions/1910608/android-action-image-capture-intent
  * - http://code.google.com/p/android/issues/detail?id=1480
  * 
@@ -44,14 +44,15 @@ import android.widget.Toast;
  * - http://nilvec.com/sending-email-without-user-interaction-in-android/
  * 
  * TODO:
- * detect camera orientation and tag the JPEG with the right orientation
- * make sure camera preview works on all devices
+ * detect camera orientation and tag the JPEG with the right orientation (done?)
+ * make sure camera preview works on all devices (done?)
  * delete the image after sending
- * put a unique identifier in the mail subject so it doesn't continue the same gmail thread
+ * design an icon for the app and for the notification
  * 
  * DONE:
  * send mail from a separate thread so it doesn't block the UI
  * prompt for preferences on startup if they're not set
+ * put a unique identifier in the mail subject so it doesn't continue the same gmail thread
  */
 
 public class Snap extends Activity {
@@ -126,6 +127,11 @@ public class Snap extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
+		// Declare that we are a landscape app
+		// I think this fixes the preview frames because the camera 
+		// expects to be in landscape mode
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
 		// Create our Preview view and set it as the content of our activity.
 		mPreview = new Preview(this);

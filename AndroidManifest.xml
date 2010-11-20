@@ -3,7 +3,8 @@
       package="org.cygx1.snap"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true"
+    	android:screenOrientation="landscape">
         <activity android:name=".Snap"
                   android:label="@string/app_name">
             <intent-filter>
