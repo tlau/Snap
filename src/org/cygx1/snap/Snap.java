@@ -9,6 +9,10 @@ import org.cygx1.snap.SnapPreferences;
 import org.cygx1.snap.R;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
@@ -17,6 +21,7 @@ import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,11 +44,14 @@ import android.widget.Toast;
  * - http://nilvec.com/sending-email-without-user-interaction-in-android/
  * 
  * TODO:
- * send mail from a separate thread so it doesn't block the UI
  * detect camera orientation and tag the JPEG with the right orientation
  * make sure camera preview works on all devices
- * prompt for preferences on startup if they're not set
  * delete the image after sending
+ * put a unique identifier in the mail subject so it doesn't continue the same gmail thread
+ * 
+ * DONE:
+ * send mail from a separate thread so it doesn't block the UI
+ * prompt for preferences on startup if they're not set
  */
 
 public class Snap extends Activity {
@@ -51,7 +59,12 @@ public class Snap extends Activity {
 	private static final int PREFS_ID = 0;
 	private Preview mPreview;
 	int mRequestCode = 1;
+	private NotificationManager mNotificationManager;
+	private Notification notifyError, notifySuccess;
 	static File outputFile = null;
+	private static final int NOTIFICATION_ERROR_ID = 178361238;
+	private static final int NOTIFICATION_SUCCESS_ID = 178361239;
+
 
 	/** Called when the activity is first created. */
 	@Override
@@ -65,6 +78,19 @@ public class Snap extends Activity {
         	startActivity(new Intent(this, SnapPreferences.class));
         	return;
         }
+        
+        // Set up the notifications manager
+        String ns = Context.NOTIFICATION_SERVICE;
+		mNotificationManager = (NotificationManager) getSystemService(ns);
+		// Create our notification object
+		Context context = getApplicationContext();
+		Intent notificationIntent = new Intent( context, Snap.class);
+		PendingIntent contentIntent = PendingIntent.getActivity( context, 0, notificationIntent, 0);
+		notifyError = new Notification(R.drawable.stat_sys_warning, "", System.currentTimeMillis());
+		notifyError.setLatestEventInfo( context, "Snap", "Unable to send photo", contentIntent);
+		// TODO: better success icon
+		notifySuccess = new Notification(R.drawable.stat_sys_warning, "", System.currentTimeMillis());
+		notifySuccess.setLatestEventInfo( context, "Snap", "Photo sent successfully", contentIntent);
 
 		// TL: the code below tries to invoke the built-in camera app
 		// It doesn't exactly work
@@ -184,6 +210,11 @@ public class Snap extends Activity {
         String password = prefs.getString(getString(R.string.passwordPref), null);
         String recipient = prefs.getString(getString(R.string.recipientPref), null);
         String subject = prefs.getString(getString(R.string.subjectPref), null);
+        
+        // Format the subject using strftime escapes
+        Time now = new Time();
+        now.setToNow();
+        subject = now.format(subject);
 
 		Mail m = new Mail(email, password);
 		String[] toArr = { recipient };
@@ -191,18 +222,26 @@ public class Snap extends Activity {
 		m.setFrom(email);
 		m.setSubject(subject);
 		m.setBody("");
+		
+		Context context = getApplicationContext();
+		CharSequence contentTitle = "Snap";
+		Intent notificationIntent = new Intent( context, Snap.class);
+		PendingIntent contentIntent = PendingIntent.getActivity( context, 0, notificationIntent, 0);
+		
 		try {
-			m.addAttachment(outputFile.getAbsolutePath());
-			if (m.send()) {
-				Toast.makeText(getApplicationContext(),
-						"Email sent successfully", Toast.LENGTH_SHORT).show();
+			m.addAttachment(outputFile.getAbsolutePath());		
+	        if (m.send()) {
+	    		notifySuccess.setLatestEventInfo( context, contentTitle, "Photo sent successfully", contentIntent);
+				mNotificationManager.notify(NOTIFICATION_SUCCESS_ID,
+						notifySuccess);
 			} else {
-				Toast.makeText(getApplicationContext(), "Error sending email",
-						Toast.LENGTH_SHORT).show();
-			}
+	    		notifyError.setLatestEventInfo( context, contentTitle, "Error sending photo", contentIntent);				
+				mNotificationManager.notify(NOTIFICATION_ERROR_ID, notifyError);
+			} 
 		} catch (Exception e) {
-			Toast.makeText(getApplicationContext(), "Error attaching photo",
-					Toast.LENGTH_SHORT).show();
+			// If there is an error, put a notification in the notification bar
+			notifyError.setLatestEventInfo( context, contentTitle, "Error sending photo", contentIntent);
+			mNotificationManager.notify( NOTIFICATION_ERROR_ID, notifyError);
 		}
 	}
 
