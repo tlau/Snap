@@ -47,12 +47,15 @@ import android.widget.Toast;
  * detect camera orientation and tag the JPEG with the right orientation (done?)
  * make sure camera preview works on all devices (done?)
  * delete the image after sending
- * design an icon for the app and for the notification
+ * silence the shutter
+ * on error, have the notification take you to the unsent file so you can try again
+ * handle onPause and onResume because I think lack of this causes the camera to get wedged
  * 
  * DONE:
  * send mail from a separate thread so it doesn't block the UI
  * prompt for preferences on startup if they're not set
  * put a unique identifier in the mail subject so it doesn't continue the same gmail thread
+ * design an icon for the app and for the notification
  */
 
 public class Snap extends Activity {
@@ -90,7 +93,7 @@ public class Snap extends Activity {
 		notifyError = new Notification(R.drawable.stat_sys_warning, "", System.currentTimeMillis());
 		notifyError.setLatestEventInfo( context, "Snap", "Unable to send photo", contentIntent);
 		// TODO: better success icon
-		notifySuccess = new Notification(R.drawable.stat_sys_warning, "", System.currentTimeMillis());
+		notifySuccess = new Notification(R.drawable.notify_success, "", System.currentTimeMillis());
 		notifySuccess.setLatestEventInfo( context, "Snap", "Photo sent successfully", contentIntent);
 
 		// TL: the code below tries to invoke the built-in camera app

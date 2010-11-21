@@ -15,7 +15,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 	SurfaceHolder mHolder;
     Camera mCamera;
 	private OrientationEventListener mOrientationListener;
-    private int mLastOrientation, mLastLatchedOrientation = 0;
+    private int mLastLatchedOrientation = -1;
 
     Preview(Context context) {
         super(context);
@@ -28,16 +28,11 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         
         mOrientationListener = new OrientationEventListener(context) {
 			public void onOrientationChanged(int orientation) {
-				if (null == mCamera) return;
-				
-                // We keep the last known orientation. So if the user
-                // first orient the camera then point the camera to
-                // floor/sky, we still have the correct orientation.
+                // Keep the last known orientation
                 if (orientation != ORIENTATION_UNKNOWN) {
-                    mLastOrientation = orientation;
                     
                     int latchedOrientation = roundOrientation(orientation);
-                    if (mLastLatchedOrientation != latchedOrientation) {
+                    if ((null != mCamera) && (mLastLatchedOrientation != latchedOrientation)) {
                         Camera.Parameters parameters = mCamera.getParameters();
                         Log.d("Snap", "Detecting rotation as " + latchedOrientation);
                         parameters.setRotation((latchedOrientation+90)%360);
