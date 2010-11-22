@@ -44,6 +44,8 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
             }
         };
         mOrientationListener.enable();
+        setFocusable(true);
+        requestFocus();
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -143,5 +145,4 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         mCamera.setParameters(parameters);
         mCamera.startPreview();
     }
-
 }

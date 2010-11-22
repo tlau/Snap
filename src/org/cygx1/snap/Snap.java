@@ -143,7 +143,7 @@ public class Snap extends Activity {
 		// Create our Preview view and set it as the content of our activity.
 		mPreview = new Preview(this);
 		setContentView(mPreview);
-
+		
 		// Set up a tap handler
 		mPreview.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
