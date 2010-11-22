@@ -50,6 +50,10 @@ import android.widget.Toast;
  * silence the shutter
  * on error, have the notification take you to the unsent file so you can try again
  * handle onPause and onResume because I think lack of this causes the camera to get wedged
+ *   (or maybe not)
+ * fire from the shutter
+ * maybe downres the pictures? Or take in lower resolution?
+ * perhaps delay before shoot, to avoid "moved" pictures
  * 
  * DONE:
  * send mail from a separate thread so it doesn't block the UI
